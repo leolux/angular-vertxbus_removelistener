@@ -52,5 +52,9 @@ public class ServerVerticle extends AbstractVerticle {
 
     http.requestHandler(router::accept).listen(8484);
     System.out.println("Server is listening on port 8484");
+    
+    vertx.setPeriodic(3000, time->{
+      vertx.eventBus().publish("outbound.test", "Hello from server!");
+    });
   }
 }

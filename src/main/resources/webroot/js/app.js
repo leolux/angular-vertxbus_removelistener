@@ -19,6 +19,7 @@ angular.module('myApp').controller(
 				function($scope, vertxEventBusService) {
 					$scope.main = this;
 					$scope.main.state = 'disconnected';
+					$scope.main.output = '';
 
 					$scope.$on('vertx-eventbus.system.disconnected', function(
 							event) {
@@ -30,27 +31,35 @@ angular.module('myApp').controller(
 							event) {
 						$scope.main.state = 'connected';
 						console.log('connected');
-
-						// unregister current listener
-						unregisterBusListener(vertxEventBusService);
-
-						// register Listener
-						registerBusListener(vertxEventBusService);
 					});
+					
+					$scope.main.doRegister = function(){
+						// register Listener
+						registerBusListener(vertxEventBusService, function(
+								message) {
+							$scope.main.output += message + '\r\n';
+						});
+					};
+					
+					$scope.main.doUnregister = function(){
+						// unregister listener
+						unregisterBusListener(vertxEventBusService);
+					};
 				} ]);
 
 var unregisterfn = null;
 
-function registerBusListener(vertxEventBusService) {
-	unregisterfn = vertxEventBusService.on('inbound.test', function(message) {
+function registerBusListener(vertxEventBusService, callback) {
+	unregisterfn = vertxEventBusService.on('outbound.test', function(message) {
 		console.log('<<<<<<<<<< ', message);
+		callback(message);
 	});
 	console.log('Listener registered');
 }
 
 function unregisterBusListener(vertxEventBusService) {
 	if (typeof unregisterfn === 'function') {
-		vertxEventBusService.removeListener('inbound.test', unregisterfn);
+		unregisterfn();
 		console.log('Listener unregistered');
 	}
 }
